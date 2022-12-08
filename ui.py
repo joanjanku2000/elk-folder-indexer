@@ -4,7 +4,8 @@ from datetime import datetime
 import tkinter as tk
 import os, glob
 from elasticsearch import Elasticsearch, helpers
-
+import docx
+import PyPDF2
 
 if os.name == 'posix':
     slash = "/" # for Linux and macOS
@@ -38,11 +39,6 @@ def get_data_from_text_file(file):
 
     return data
 
-
-import docx
-
-import PyPDF2
-
 def get_text(filename):
     fullText = []
   
@@ -59,12 +55,10 @@ def getText(filename):
         fullText.append(para.text)
     return ''.join(fullText)
 
-
-
-
 def yield_docs(all_files, textB: tk.Text):
     for _id, _file in enumerate(all_files):
         textB.insert(tk.END ,"\nIndexing : " + _file)
+        textB.see(tk.END)
         file_name = _file[ _file.rfind(slash)+1:]
         if os.path.getsize(_file) > 50000000:
          doc_source = {
@@ -130,12 +124,6 @@ def yield_docs(all_files, textB: tk.Text):
                     "_source": doc_source
                 } 
 
-
-
-
-## UI
-
-
 root= tk.Tk('Chipster')
 
 canvas1 = tk.Canvas(root, width=400, height=520, relief='raised')
@@ -162,6 +150,9 @@ canvas1.create_window(200, 220, window=entry2)
 
 text = tk.Text(root, height=10,width=40)
 # text.config(state= tk.ENAB)
+import threading
+
+
 
 def index():
  
@@ -190,11 +181,14 @@ def index():
    text.insert (tk.END,"RESPONSE TYPE:"+ str(type(resp)))
  except Exception as err:
    print("\nhelpers.bulk() ERROR:", err)
+ text.see(tk.END)
  return
    
 
+def start_combine_in_bg():
+    threading.Thread(target=index).start()
 
-button1 = tk.Button(text='Index', command=index, bg='blue', fg='white', font=('helvetica', 9, 'bold'))
+button1 = tk.Button(text='Index', command=start_combine_in_bg, bg='blue', fg='white', font=('helvetica', 9, 'bold'))
 # button1.pack()
 canvas1.create_window(200, 260, window=button1)
 
