@@ -60,32 +60,32 @@ def yield_docs(all_files, textB: tk.Text):
         textB.insert(tk.END ,"\nIndexing : " + _file)
         textB.see(tk.END)
         file_name = _file[ _file.rfind(slash)+1:]
-        if os.path.getsize(_file) > 50000000 or file_name.lower().endswith(('jpg' , '.ico' , '.png' , '.js' ,'.zip' , '.rar')) is True:
-         doc_source = {
-                    "file_name": file_name,
-                    "data": _file,
-                    "file_path":_file
-                }
-         yield {
-                    "_index": "chipster",
-                    #  "_type": "some_type",
-                    # "_id": _id + 1, # number _id for each iteration
-                    "_source": doc_source
-                }
-         continue
+        # if os.path.getsize(_file) > 50000000 or file_name.lower().endswith(('jpg' , '.ico' , '.png' , '.js' ,'.zip' , '.rar' ,'.exe')) is True:
+        #  doc_source = {
+        #             "file_name": file_name,
+        #             "data": _file,
+        #             "file_path":_file
+        #         }
+        #  yield {
+        #             "_index": "chipster",
+        #             #  "_type": "some_type",
+        #             # "_id": _id + 1, # number _id for each iteration
+        #             "_source": doc_source
+        #         }
+        #  continue
     
         
-        try:
-             data = get_data_from_text_file( _file )
-             data = "".join( data )
+        try:    
+              if file_name.lower().endswith(('.html' , '.txt' , '.php')) is True :
+                 data = get_data_from_text_file( _file )
+                 data = "".join( data )
 
-             if file_name.lower().endswith(('.png', '.jpg', '.jpeg', '.tiff', '.bmp', '.gif' , ".docx" , ".pdf" , ".ico" )) is False :
                  doc_source = {
                     "file_name": file_name,
                     "data": data ,
                     "file_path":_file
                 }
-             elif file_name.lower().endswith((".docx", ".doc")) is True :
+              elif file_name.lower().endswith((".docx", ".doc")) is True :
                    pages = getText(_file)
                    for page in pages:
                         doc_source = {
@@ -97,7 +97,7 @@ def yield_docs(all_files, textB: tk.Text):
                         "_index": "chipster",
                         "_source": doc_source
                         }
-             elif file_name.lower().endswith((".pdf")) is True :
+              elif file_name.lower().endswith((".pdf")) is True :
                     print("Ends with pdf")
                     pages = get_text(_file)
                     for page in pages:
@@ -110,20 +110,22 @@ def yield_docs(all_files, textB: tk.Text):
                         "_index": "chipster",
                         "_source": doc_source
                         }   
-             else:
+              else:
                     doc_source = {
                     "file_name": file_name,
                     "data": _file,
                     "file_path":_file
                 }
         
-             yield {
+                    yield {
                     "_index": "chipster",
                     #  "_type": "some_type",
                     # "_id": _id + 1, # number _id for each iteration
                     "_source": doc_source
-                }   
+                }  
+             
         except Exception as err:
+          print('\nError ',err)
           doc_source = {
                     "file_name": file_name,
                     "data": _file,
@@ -194,7 +196,7 @@ def index():
    text.insert (tk.END,"\nhelpers.bulk() RESPONSE:"+ str(resp))
    text.insert (tk.END,"RESPONSE TYPE:"+ str(type(resp)))
  except Exception as err:
-   print("\nhelpers.bulk() ERROR:", err)
+   print("\nhelpers.bulk() ERROR:", str(err))
  text.see(tk.END)
  return
 
