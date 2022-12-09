@@ -45,22 +45,22 @@ def get_text(filename):
     reader = PyPDF2.PdfReader(filename)
     for page in reader.pages:
         fullText.append(page.extract_text())
-    return ''.join(fullText)
+    return fullText
     
 def getText(filename):
     doc = docx.Document(filename)
-    
     fullText = []
     for para in doc.paragraphs:
         fullText.append(para.text)
-    return ''.join(fullText)
+
+    return fullText
 
 def yield_docs(all_files, textB: tk.Text):
     for _id, _file in enumerate(all_files):
         textB.insert(tk.END ,"\nIndexing : " + _file)
         textB.see(tk.END)
         file_name = _file[ _file.rfind(slash)+1:]
-        if os.path.getsize(_file) > 50000000:
+        if os.path.getsize(_file) > 50000000 or file_name.lower().endswith(('jpg' , '.ico' , '.png' , '.js' ,'.zip' , '.rar')) is True:
          doc_source = {
                     "file_name": file_name,
                     "data": _file,
@@ -86,18 +86,30 @@ def yield_docs(all_files, textB: tk.Text):
                     "file_path":_file
                 }
              elif file_name.lower().endswith((".docx", ".doc")) is True :
-                    doc_source = {
-                    "file_name": file_name,
-                    "data": getText(_file),
-                    "file_path":_file
-                }
+                   pages = getText(_file)
+                   for page in pages:
+                        doc_source = {
+                            "file_name": file_name,
+                            "data": page,
+                            "file_path":_file
+                        }
+                        yield {
+                        "_index": "chipster",
+                        "_source": doc_source
+                        }
              elif file_name.lower().endswith((".pdf")) is True :
                     print("Ends with pdf")
-                    doc_source = {
-                        "file_name": file_name,
-                        "data": get_text(_file),
-                        "file_path":_file
-                    }
+                    pages = get_text(_file)
+                    for page in pages:
+                        doc_source = {
+                            "file_name": file_name,
+                            "data": page,
+                            "file_path":_file
+                        }
+                        yield {
+                        "_index": "chipster",
+                        "_source": doc_source
+                        }   
              else:
                     doc_source = {
                     "file_name": file_name,
@@ -125,12 +137,14 @@ def yield_docs(all_files, textB: tk.Text):
                 } 
 
 root= tk.Tk('Chipster')
-root.title("ElasticSearch Folder Indexer ")
+root.title("Chipster Folder Indexer ")
+root.resizable(False,False)
+
 canvas1 = tk.Canvas(root, width=400, height=520, relief='raised')
 
 
-label1 = tk.Label(root, text='Chipster Indexer')
-label1.config(font=('helvetica', 14))
+label1 = tk.Label(root, text='Chipster Indexer', background="lightblue")
+label1.config(font=('Serif', 14, "bold"))
 canvas1.create_window(200, 25, window=label1)
 
 label2 = tk.Label(root, text='Enter the path of the folder to be indexed:')
@@ -183,12 +197,18 @@ def index():
    print("\nhelpers.bulk() ERROR:", err)
  text.see(tk.END)
  return
-   
+
 
 def start_combine_in_bg():
     threading.Thread(target=index).start()
+import tkinter.ttk as ttk
 
-button1 = tk.Button(text='Index', command=start_combine_in_bg, bg='blue', fg='white', font=('helvetica', 9, 'bold'))
+style = ttk.Style()
+style.theme_use('alt')
+style.configure('TButton', background = 'red', foreground = 'white', width = 20, borderwidth=1, focusthickness=4, focuscolor='none' , font=('Sans serif', 12, "bold"))
+style.map('TButton', background=[('active','indianred')])
+
+button1 = ttk.Button(text='Index', command=start_combine_in_bg)
 # button1.pack()
 canvas1.create_window(200, 260, window=button1)
 
