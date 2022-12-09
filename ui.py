@@ -1,5 +1,5 @@
 ## Indexer BE
-
+## Author: JJanku December 22
 from datetime import datetime
 import tkinter as tk
 import os, glob
@@ -125,7 +125,7 @@ def yield_docs(all_files, textB: tk.Text):
                 } 
 
 root= tk.Tk('Chipster')
-
+root.title("ElasticSearch Folder Indexer ")
 canvas1 = tk.Canvas(root, width=400, height=520, relief='raised')
 
 
