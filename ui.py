@@ -55,35 +55,39 @@ def getText(filename):
 
     return fullText
 
+import re
 def yield_docs(all_files, textB: tk.Text):
     for _id, _file in enumerate(all_files):
         textB.insert(tk.END ,"\nIndexing : " + _file)
         textB.see(tk.END)
         file_name = _file[ _file.rfind(slash)+1:]
-        # if os.path.getsize(_file) > 50000000 or file_name.lower().endswith(('jpg' , '.ico' , '.png' , '.js' ,'.zip' , '.rar' ,'.exe')) is True:
-        #  doc_source = {
-        #             "file_name": file_name,
-        #             "data": _file,
-        #             "file_path":_file
-        #         }
-        #  yield {
-        #             "_index": "chipster",
-        #             #  "_type": "some_type",
-        #             # "_id": _id + 1, # number _id for each iteration
-        #             "_source": doc_source
-        #         }
-        #  continue
-    
+        tokens:list =_file.split('WebContent')
+        if len(tokens) == 1:
+            print("Count is 1")
+            tokens = _file.split('UserContent')
+        if len(tokens) == 1:
+            continue
+        whats_left:list = tokens[1].split('\\')
+        whats_left_final:list = []
+        for token in whats_left:
+            if len(token) > 0:
+             token = '/'+token
+             whats_left_final.append(token)
+
+        print(whats_left_final)
+        final_url = ''.join(whats_left_final)
+        print(final_url)
+
         
         try:    
-              if file_name.lower().endswith(('.html' , '.txt' , '.php')) is True :
+              if file_name.lower().endswith(('.html' , '.txt' , '.php' , '.htm')) is True :
                  data = get_data_from_text_file( _file )
                  data = "".join( data )
 
                  doc_source = {
                     "file_name": file_name,
                     "data": data ,
-                    "file_path":_file
+                    "file_path":final_url
                 }
               elif file_name.lower().endswith((".docx", ".doc")) is True :
                    pages = getText(_file)
@@ -91,7 +95,7 @@ def yield_docs(all_files, textB: tk.Text):
                         doc_source = {
                             "file_name": file_name,
                             "data": page,
-                            "file_path":_file
+                            "file_path":final_url
                         }
                         yield {
                         "_index": "chipster",
@@ -104,7 +108,7 @@ def yield_docs(all_files, textB: tk.Text):
                         doc_source = {
                             "file_name": file_name,
                             "data": page,
-                            "file_path":_file
+                            "file_path":final_url
                         }
                         yield {
                         "_index": "chipster",
@@ -113,8 +117,8 @@ def yield_docs(all_files, textB: tk.Text):
               else:
                     doc_source = {
                     "file_name": file_name,
-                    "data": _file,
-                    "file_path":_file
+                    "data": final_url,
+                    "file_path":final_url
                 }
         
                     yield {
@@ -128,8 +132,8 @@ def yield_docs(all_files, textB: tk.Text):
           print('\nError ',err)
           doc_source = {
                     "file_name": file_name,
-                    "data": _file,
-                    "file_path":_file
+                    "data": final_url,
+                    "file_path":final_url
                 }
           yield {
                     "_index": "chipster",
