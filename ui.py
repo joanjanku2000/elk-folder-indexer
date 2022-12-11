@@ -60,6 +60,7 @@ import pathlib
 from datetime import datetime
 
 
+
 def yield_docs(all_files, textB: tk.Text):
     for _id, _file in enumerate(all_files):
         textB.insert(tk.END ,"\nIndexing : " + _file)
@@ -78,7 +79,7 @@ def yield_docs(all_files, textB: tk.Text):
         whats_left_final:list = []
         for token in whats_left:
             if len(token) > 0:
-             token = '/'+token
+             token = '/'+token 
              whats_left_final.append(token)
 
         print(whats_left_final)
@@ -190,7 +191,15 @@ text = tk.Text(root, height=10,width=40)
 import threading
 
 
-
+def create_index(client:Elasticsearch):
+    request_body = {
+	    'mappings': {
+	            'properties': {
+	                'file_path': {'type': 'keyword'}
+	            }}
+	}
+    client.indices.create(index="chipster", request_body=request_body)
+    return
 def index():
  
  print("INDEX Clicked")
@@ -200,6 +209,8 @@ def index():
  else: 
   client = Elasticsearch(elk_url)
 
+ if client.indices.exists(index="chipster") is False: 
+    create_index(client)
  dir_to_index = entry1.get()
  print("Got ", dir_to_index , elk_url)
 
