@@ -57,17 +57,21 @@ def getText(filename):
 
     return fullText
 
-def yield_docs(all_files, textB: tk.Text , index):
+def yield_docs(all_files, textB: tk.Text , index, label: tk.Label):
     if  not index or index is None or len(index) == 0:
         textB.insert(tk.END ,"\nNo Index Provided")
         return
+    count = 0
     for _id, _file in enumerate(all_files):
+        count+=1
+        label.configure(text="File:"+str(count) + "/" + str(len(all_files)))
+
         textB.insert(tk.END ,"\nIndexing : " + _file)
         textB.see(tk.END)
         file_name = _file[ _file.rfind(slash)+1:]
         
         try:    
-              if file_name.lower().endswith(('.html' , '.txt' , '.php')) is True :
+              if file_name.lower().endswith(('.html' , '.txt' , '.php' ,'.htm')) is True :
                  data = get_data_from_text_file( _file )
                  data = "".join( data )
 
@@ -171,6 +175,9 @@ canvas1.create_window(200, 280, window=entry3)
 
 text = tk.Text(root, height=10,width=40)
 
+progress_label = tk.Label(root,text="")
+progress_label.config(font=("helvetica",12,"bold"))
+
 
 
 
@@ -195,7 +202,7 @@ def index():
  try:
    resp = helpers.bulk(
        client,
-       yield_docs( all_files,text,entry3.get() )
+       yield_docs( all_files,text,entry3.get() , progress_label )
    )
    text.insert (tk.END,"\nhelpers.bulk() RESPONSE:"+ str(resp))
    text.insert (tk.END,"RESPONSE TYPE:"+ str(type(resp)))
@@ -214,12 +221,15 @@ style.theme_use('alt')
 style.configure('TButton', background = 'red', foreground = 'white', width = 20, borderwidth=1, focusthickness=4, focuscolor='none' , font=('Sans serif', 12, "bold"))
 style.map('TButton', background=[('active','indianred')])
 
+
 button1 = ttk.Button(text='Index', command=start_combine_in_bg)
 # button1.pack()
 canvas1.create_window(200, 340, window=button1)
 
 
-canvas1.create_window(200,470,window=text)
+canvas1.create_window(200,370, window=progress_label)
+
+canvas1.create_window(200,490,window=text)
 print("END")
 canvas1.pack()
 root.mainloop()
