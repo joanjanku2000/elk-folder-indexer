@@ -178,20 +178,32 @@ text = tk.Text(root, height=10,width=40)
 progress_label = tk.Label(root,text="")
 progress_label.config(font=("helvetica",12,"bold"))
 
+client = ''
+connected= False
+def connect():
+     global client 
+     elk_url = entry2.get()
+     print("Got ", elk_url)
+     if elk_url is None or not elk_url:
+        client = Elasticsearch("http://localhost:9200")
+     else: 
+         client = Elasticsearch(elk_url)
+     global connected 
+     connected = True
+     text.insert(tk.END ,'Existing Indices')
+     indices = client.indices.get_alias()
+     for index in indices:
+        text.insert(tk.END ,'\n'+str(index))
 
-
+     print(indices)
+     return
 
 def index():
- 
+ if connected is False:
+    connect()
  print("INDEX Clicked")
- elk_url = entry2.get()
- if elk_url is None or not elk_url:
-  client = Elasticsearch("http://localhost:9200")
- else: 
-  client = Elasticsearch(elk_url)
-
  dir_to_index = entry1.get()
- print("Got ", dir_to_index , elk_url)
+ 
 
  if os.path.isdir(dir_to_index) is False:  
    all_files = get_files_in_dir('.')
@@ -218,18 +230,22 @@ import tkinter.ttk as ttk
 
 style = ttk.Style()
 style.theme_use('alt')
-style.configure('TButton', background = 'red', foreground = 'white', width = 20, borderwidth=1, focusthickness=4, focuscolor='none' , font=('Sans serif', 12, "bold"))
+style.configure('TButton', background = 'red', foreground = 'white', width = 10, borderwidth=1, focusthickness=4, focuscolor='none' , font=('Sans serif', 12, "bold"))
 style.map('TButton', background=[('active','indianred')])
 
 
 button1 = ttk.Button(text='Index', command=start_combine_in_bg)
+button12 = tk.Button(text='Connect' , command = connect , background="green" , foreground = 'white' ,width = 8, font=('Sans serif', 10, "bold"))
 # button1.pack()
-canvas1.create_window(200, 340, window=button1)
+canvas1.create_window(250, 340, window=button1)
+canvas1.create_window(150, 340, window=button12)
 
 
 canvas1.create_window(200,370, window=progress_label)
 
 canvas1.create_window(200,490,window=text)
+
+
 print("END")
 canvas1.pack()
 root.mainloop()
