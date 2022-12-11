@@ -56,11 +56,18 @@ def getText(filename):
     return fullText
 
 import re
+import pathlib
+from datetime import datetime
+
+
 def yield_docs(all_files, textB: tk.Text):
     for _id, _file in enumerate(all_files):
         textB.insert(tk.END ,"\nIndexing : " + _file)
         textB.see(tk.END)
         file_name = _file[ _file.rfind(slash)+1:]
+        file_creation_time = datetime.fromtimestamp(os.path.getctime(_file)).strftime('%Y-%m-%dT%H:%M:%S')
+        file_type = pathlib.Path(_file).suffix
+
         tokens:list =_file.split('WebContent')
         if len(tokens) == 1:
             print("Count is 1")
@@ -87,7 +94,9 @@ def yield_docs(all_files, textB: tk.Text):
                  doc_source = {
                     "file_name": file_name,
                     "data": data ,
-                    "file_path":final_url
+                    "file_path":final_url,
+                    "file_type":file_type,
+                    "creation_time":file_creation_time
                 }
               elif file_name.lower().endswith((".docx", ".doc")) is True :
                    pages = getText(_file)
@@ -95,7 +104,9 @@ def yield_docs(all_files, textB: tk.Text):
                         doc_source = {
                             "file_name": file_name,
                             "data": page,
-                            "file_path":final_url
+                            "file_path":final_url,
+                            "file_type":file_type,
+                            "creation_time":file_creation_time
                         }
                         yield {
                         "_index": "chipster",
@@ -108,7 +119,9 @@ def yield_docs(all_files, textB: tk.Text):
                         doc_source = {
                             "file_name": file_name,
                             "data": page,
-                            "file_path":final_url
+                            "file_path":final_url,
+                            "file_type":file_type,
+                            "creation_time":file_creation_time
                         }
                         yield {
                         "_index": "chipster",
@@ -118,7 +131,9 @@ def yield_docs(all_files, textB: tk.Text):
                     doc_source = {
                     "file_name": file_name,
                     "data": final_url,
-                    "file_path":final_url
+                    "file_path":final_url,
+                    "file_type":file_type,
+                    "creation_time":file_creation_time
                 }
         
                     yield {
@@ -133,7 +148,9 @@ def yield_docs(all_files, textB: tk.Text):
           doc_source = {
                     "file_name": file_name,
                     "data": final_url,
-                    "file_path":final_url
+                    "file_path":final_url,
+                    "file_type":file_type,
+                    "creation_time":file_creation_time
                 }
           yield {
                     "_index": "chipster",
