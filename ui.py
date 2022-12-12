@@ -55,35 +55,49 @@ def getText(filename):
 
     return fullText
 
+import re
+import pathlib
+from datetime import datetime
+
+
+
 def yield_docs(all_files, textB: tk.Text):
     for _id, _file in enumerate(all_files):
         textB.insert(tk.END ,"\nIndexing : " + _file)
         textB.see(tk.END)
         file_name = _file[ _file.rfind(slash)+1:]
-        # if os.path.getsize(_file) > 50000000 or file_name.lower().endswith(('jpg' , '.ico' , '.png' , '.js' ,'.zip' , '.rar' ,'.exe')) is True:
-        #  doc_source = {
-        #             "file_name": file_name,
-        #             "data": _file,
-        #             "file_path":_file
-        #         }
-        #  yield {
-        #             "_index": "chipster",
-        #             #  "_type": "some_type",
-        #             # "_id": _id + 1, # number _id for each iteration
-        #             "_source": doc_source
-        #         }
-        #  continue
-    
+        file_creation_time = datetime.fromtimestamp(os.path.getctime(_file)).strftime('%Y-%m-%dT%H:%M:%S')
+        file_type = pathlib.Path(_file).suffix
+
+        tokens:list =_file.split('WebContent')
+        if len(tokens) == 1:
+            print("Count is 1")
+            tokens = _file.split('UserContent')
+        if len(tokens) == 1:
+            continue
+        whats_left:list = tokens[1].split('\\')
+        whats_left_final:list = []
+        for token in whats_left:
+            if len(token) > 0:
+             token = '/'+token 
+             whats_left_final.append(token)
+
+        print(whats_left_final)
+        final_url = ''.join(whats_left_final)
+        print(final_url)
+
         
         try:    
-              if file_name.lower().endswith(('.html' , '.txt' , '.php')) is True :
+              if file_name.lower().endswith(('.html' , '.txt' , '.php' , '.htm')) is True :
                  data = get_data_from_text_file( _file )
                  data = "".join( data )
 
                  doc_source = {
                     "file_name": file_name,
                     "data": data ,
-                    "file_path":_file
+                    "file_path":final_url,
+                    "file_type":file_type,
+                    "creation_time":file_creation_time
                 }
               elif file_name.lower().endswith((".docx", ".doc")) is True :
                    pages = getText(_file)
@@ -91,7 +105,9 @@ def yield_docs(all_files, textB: tk.Text):
                         doc_source = {
                             "file_name": file_name,
                             "data": page,
-                            "file_path":_file
+                            "file_path":final_url,
+                            "file_type":file_type,
+                            "creation_time":file_creation_time
                         }
                         yield {
                         "_index": "chipster",
@@ -104,7 +120,9 @@ def yield_docs(all_files, textB: tk.Text):
                         doc_source = {
                             "file_name": file_name,
                             "data": page,
-                            "file_path":_file
+                            "file_path":final_url,
+                            "file_type":file_type,
+                            "creation_time":file_creation_time
                         }
                         yield {
                         "_index": "chipster",
@@ -113,8 +131,10 @@ def yield_docs(all_files, textB: tk.Text):
               else:
                     doc_source = {
                     "file_name": file_name,
-                    "data": _file,
-                    "file_path":_file
+                    "data": final_url,
+                    "file_path":final_url,
+                    "file_type":file_type,
+                    "creation_time":file_creation_time
                 }
         
                     yield {
@@ -128,8 +148,10 @@ def yield_docs(all_files, textB: tk.Text):
           print('\nError ',err)
           doc_source = {
                     "file_name": file_name,
-                    "data": _file,
-                    "file_path":_file
+                    "data": final_url,
+                    "file_path":final_url,
+                    "file_type":file_type,
+                    "creation_time":file_creation_time
                 }
           yield {
                     "_index": "chipster",
@@ -169,7 +191,15 @@ text = tk.Text(root, height=10,width=40)
 import threading
 
 
-
+def create_index(client:Elasticsearch):
+    request_body = {
+	    'mappings': {
+	            'properties': {
+	                'file_path': {'type': 'keyword'}
+	            }}
+	}
+    client.indices.create(index="chipster", request_body=request_body)
+    return
 def index():
  
  print("INDEX Clicked")
@@ -179,6 +209,8 @@ def index():
  else: 
   client = Elasticsearch(elk_url)
 
+ if client.indices.exists(index="chipster") is False: 
+    create_index(client)
  dir_to_index = entry1.get()
  print("Got ", dir_to_index , elk_url)
 
