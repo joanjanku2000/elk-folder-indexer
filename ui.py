@@ -68,6 +68,8 @@ def yield_docs(all_files, textB: tk.Text):
         file_name = _file[ _file.rfind(slash)+1:]
         file_creation_time = datetime.fromtimestamp(os.path.getctime(_file)).strftime('%Y-%m-%dT%H:%M:%S')
         file_type = pathlib.Path(_file).suffix
+        file_size= round(os.stat(_file).st_size / (1024 * 1024), 3)
+        print("File size in MB", file_size)
 
         tokens:list =_file.split('WebContent')
         if len(tokens) == 1:
@@ -97,6 +99,7 @@ def yield_docs(all_files, textB: tk.Text):
                     "data": data ,
                     "file_path":final_url,
                     "file_type":file_type,
+                    "file_size_mb":file_size,
                     "creation_time":file_creation_time
                 }
               elif file_name.lower().endswith((".docx", ".doc")) is True :
@@ -107,6 +110,7 @@ def yield_docs(all_files, textB: tk.Text):
                             "data": page,
                             "file_path":final_url,
                             "file_type":file_type,
+                             "file_size_mb":file_size,
                             "creation_time":file_creation_time
                         }
                         yield {
@@ -122,6 +126,7 @@ def yield_docs(all_files, textB: tk.Text):
                             "data": page,
                             "file_path":final_url,
                             "file_type":file_type,
+                             "file_size_mb":file_size,
                             "creation_time":file_creation_time
                         }
                         yield {
@@ -134,6 +139,7 @@ def yield_docs(all_files, textB: tk.Text):
                     "data": final_url,
                     "file_path":final_url,
                     "file_type":file_type,
+                     "file_size_mb":file_size,
                     "creation_time":file_creation_time
                 }
         
@@ -151,6 +157,7 @@ def yield_docs(all_files, textB: tk.Text):
                     "data": final_url,
                     "file_path":final_url,
                     "file_type":file_type,
+                     "file_size_mb":file_size,
                     "creation_time":file_creation_time
                 }
           yield {
@@ -200,8 +207,12 @@ def create_index(client:Elasticsearch):
 	}
     client.indices.create(index="chipster", request_body=request_body)
     return
+def delete_index():
+    client = Elasticsearch("http://localhost:9200")
+    client.indices.delete(index='chipster', ignore=[400, 404])
+
 def index():
- 
+
  print("INDEX Clicked")
  elk_url = entry2.get()
  if elk_url is None or not elk_url:
@@ -239,13 +250,15 @@ import tkinter.ttk as ttk
 
 style = ttk.Style()
 style.theme_use('alt')
-style.configure('TButton', background = 'red', foreground = 'white', width = 20, borderwidth=1, focusthickness=4, focuscolor='none' , font=('Sans serif', 12, "bold"))
-style.map('TButton', background=[('active','indianred')])
+style.configure('TButton', background = 'green', foreground = 'white', width = 20, borderwidth=1, focusthickness=4, focuscolor='none' , font=('Sans serif', 12, "bold"))
+style.map('TButton', background=[('active','lightgreen')])
 
 button1 = ttk.Button(text='Index', command=start_combine_in_bg)
-# button1.pack()
-canvas1.create_window(200, 260, window=button1)
 
+button2 = tk.Button(text='Delete Index', command=delete_index, background="red",foreground = 'white',  font=('Sans serif', 10, "bold"))
+# button1.pack()
+canvas1.create_window(250, 260, window=button1)
+canvas1.create_window(100,260, window=button2)
 
 canvas1.create_window(200,380,window=text)
 print("END")
