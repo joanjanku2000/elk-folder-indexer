@@ -185,12 +185,12 @@ canvas1.create_window(200, 100, window=label2)
 entry1 = tk.Entry(root , width=40) 
 canvas1.create_window(200, 140, window=entry1)
 
-label3 = tk.Label(root, text='Enter the URL of the elasticsearch instance:')
-label3.config(font=('helvetica', 10))
-canvas1.create_window(200, 180, window=label3)
+# label3 = tk.Label(root, text='Enter the URL of the elasticsearch instance:')
+# label3.config(font=('helvetica', 10))
+# canvas1.create_window(200, 180, window=label3)
 
-entry2 = tk.Entry(root,width=40) 
-canvas1.create_window(200, 220, window=entry2)
+# entry2 = tk.Entry(root,width=40) 
+# canvas1.create_window(200, 220, window=entry2)
 
 
 text = tk.Text(root, height=10,width=40)
@@ -210,36 +210,46 @@ def create_index(client:Elasticsearch):
 def delete_index():
     client = Elasticsearch("http://localhost:9200")
     client.indices.delete(index='chipster', ignore=[400, 404])
-
+    text.insert(tk.END,"Deleted Chipster Index...." )
+import time
 def index():
 
  print("INDEX Clicked")
- elk_url = entry2.get()
- if elk_url is None or not elk_url:
-  client = Elasticsearch("http://localhost:9200")
- else: 
-  client = Elasticsearch(elk_url)
+#  elk_url = entry2.get()
+#  if elk_url is None or not elk_url:
+ client = Elasticsearch("http://localhost:9200")
+#  else: 
+#   client = Elasticsearch(elk_url)
 
  if client.indices.exists(index="chipster") is False: 
     create_index(client)
  dir_to_index = entry1.get()
- print("Got ", dir_to_index , elk_url)
+ print("Got ", dir_to_index )
 
  if os.path.isdir(dir_to_index) is False:  
    all_files = get_files_in_dir('.')
  else: 
   all_files = get_files_in_dir(dir_to_index)
    
- text.insert(tk.END,"TEST" ) # "\n " + "TOTAL FILES:", len( all_files )
+ #text.insert(tk.END,"TEST" ) # "\n " + "TOTAL FILES:", len( all_files )
  try:
-   resp = helpers.bulk(
+   button1["state"]= "disabled"
+   button2["state"]= "disabled"
+   text.insert(tk.END,"Indexing is starting...." )
+   start = time.time()
+   resp= helpers.bulk(
        client,
        yield_docs( all_files,text )
    )
-   text.insert (tk.END,"\nhelpers.bulk() RESPONSE:"+ str(resp))
-   text.insert (tk.END,"RESPONSE TYPE:"+ str(type(resp)))
+   end = time.time()
+   text.insert (tk.END,"\nIndexed: "+ str(resp) + " documents in "+ str(round((end-start) / 3600 , 5)) + " Hours")
+   #text.insert (tk.END,"RESPONSE TYPE:"+ str(type(resp)))
+   button1["state"]= "enable"
+   button2["state"]= "normal"
  except Exception as err:
    print("\nhelpers.bulk() ERROR:", str(err))
+   button1["state"]= "enable"
+   button2["state"]= "normal"
  text.see(tk.END)
  return
 
@@ -257,8 +267,8 @@ button1 = ttk.Button(text='Index', command=start_combine_in_bg)
 
 button2 = tk.Button(text='Delete Index', command=delete_index, background="red",foreground = 'white',  font=('Sans serif', 10, "bold"))
 # button1.pack()
-canvas1.create_window(250, 260, window=button1)
-canvas1.create_window(100,260, window=button2)
+canvas1.create_window(200, 200, window=button1)
+canvas1.create_window(200,260, window=button2)
 
 canvas1.create_window(200,380,window=text)
 print("END")
